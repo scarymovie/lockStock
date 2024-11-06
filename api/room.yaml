@@ -1,0 +1,147 @@
+openapi: "3.0.0"
+
+info:
+  version: 0.0.1
+  title: Poker Room Api
+  contact:
+    name: jeka
+    email: team@jeka.ru
+
+servers:
+  - url: http://localhost:8080/
+
+paths:
+
+  /api/room/list:
+    get:
+      operationId: getRooms
+      responses:
+        '200':
+          description: Выводит список всех доступных лобби
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/NwkRoom"
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NwkError"
+
+  /api/room/find/{token}:
+    get:
+      operationId: findRoom
+      responses:
+        '200':
+          description: Возвращает комнату найденную по токену
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NwkRoom"
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NwkError"
+
+  /api/room/{roomId}/connect:
+    post:
+      parameters:
+        - name: roomId
+          description: Идентификатор комнаты
+          in: path
+          schema:
+            type: string
+          required: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NwkRawGamer'
+      operationId: connectGamerToRoom
+      responses:
+        '200':
+          description: Добавление игрока в лобби
+          content:
+            application/json:
+              schema:
+                type: string
+                description: success
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NwkError"
+
+  /api/room/{roomId}/gamers/list:
+    get:
+      parameters:
+        - name: roomId
+          description: Идентификатор комнаты
+          in: path
+          schema:
+            type: string
+          required: true
+      operationId: getRoomGamers
+      responses:
+        '200':
+          description: Список игроков в комнате
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NwkError"
+
+components:
+
+  schemas:
+
+    NwkRoom:
+      type: object
+      properties:
+        code:
+          type: string
+        name:
+          type: string
+        id:
+          type: string
+      required:
+        - name
+        - code
+        - id
+
+    NwkRawGamer:
+      type: object
+      properties:
+        name:
+          type: string
+      required:
+        - name
+
+    NwkError:
+      type: object
+      description: Описание ошибки
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: integer
+          format: int32
+          description: Код ошибки
+        message:
+          type: string
+          description: Сообщение об ошибке
