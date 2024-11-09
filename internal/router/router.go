@@ -15,9 +15,9 @@ func LoadRoutes(mainRouter *http.ServeMux) {
 	userRouter.HandleFunc("/create", userHandler.CreateUser)
 
 	roomRouter.HandleFunc("/list", roomHandler.GetAllActiveRooms)
-	roomRouter.HandleFunc("/find/{token}", roomHandler.FindRoomByToken)
-	roomRouter.HandleFunc("/{roomId}/connect", roomHandler.ConnectToRoom)
-	roomRouter.HandleFunc("/{roomId}/gamers/list", roomHandler.GetAllActiveRooms)
+	roomRouter.HandleFunc("/find/token/{token}", roomHandler.FindRoomByToken)
+	roomRouter.HandleFunc("/connect/{roomId}/", roomHandler.ConnectToRoom)
+	roomRouter.HandleFunc("/gamers/{roomId}/list", roomHandler.GetAllActiveRooms)
 
 	mainRouter.Handle("/user/", http.StripPrefix("/user", userRouter))
 	mainRouter.Handle("/room/", http.StripPrefix("/room", roomRouter))

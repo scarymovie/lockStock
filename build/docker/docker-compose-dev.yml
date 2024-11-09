@@ -1,38 +1,42 @@
 version: '3.8'
 
 services:
-  app:
-    build:
-      context: ../..
-      dockerfile: build/docker/go/Dockerfile
-    ports:
-      - "${APP_PORT}:${APP_PORT}"
-    depends_on:
-      db:
-        condition: service_healthy
-    env_file:
-      - ../../.env
-    networks:
-      - lock_stock_network
-
-  db:
+  dev-db:
     image: postgres:15
-    env_file:
-      - ../../.env
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_DATABASE}
     ports:
-      - "${DB_PORT}:${DB_PORT}"
+      - "9331:5432"
     networks:
       - lock_stock_network
+    expose:
+      - 5432
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER}"]
+      test: [ "CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_DATABASE}" ]
       interval: 10s
       timeout: 5s
       retries: 5
     volumes:
-      - lock_stock_pg_data:/var/lib/postgresql/data
+      - lock_stock_db_data:/var/lib/postgresql/data
+
+  app:
+    build:
+      context: "../.."
+      dockerfile: "./build/docker/go/Dockerfile"
+    ports:
+      - "${APP_PORT}:${APP_PORT}"
+    depends_on:
+      dev-db:
+        condition: service_healthy
+    env_file:
+      - ./.env
+    networks:
+      - lock_stock_network
 
 volumes:
-  lock_stock_pg_data:
+  lock_stock_db_data:
 
 networks:
   lock_stock_network:
