@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   dev-db:
-    container_name: dev-db
+    container_name: lock-stock-dev-db
     image: postgres:15
     environment:
       POSTGRES_USER: ${DB_USER}
@@ -21,22 +21,6 @@ services:
       retries: 5
     volumes:
       - lock_stock_db_data:/var/lib/postgresql/data
-
-  app:
-    build:
-      context: "../.."
-      dockerfile: "./build/docker/go/Dockerfile"
-    ports:
-      - "${APP_PORT}:${APP_PORT}"
-    depends_on:
-      dev-db:
-        condition: service_healthy
-    env_file:
-      - ./.env
-    networks:
-      - lock_stock_network
-    volumes:
-      - ./logs:/app/logs
 
 volumes:
   lock_stock_db_data:
