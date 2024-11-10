@@ -3,7 +3,6 @@ package main
 
 import (
 	"database/sql"
-	"fmt"
 	"lockStock/internal/middleware"
 	appRouter "lockStock/internal/router"
 	"lockStock/pkg/logger"
@@ -43,7 +42,7 @@ func main() {
 		Handler: stack(router),
 	}
 
-	fmt.Println("Server listening on port :8080")
+	logger.Logger.Println("Starting server...")
 	if err := server.ListenAndServe(); err != nil {
 		logger.Logger.Fatalf("Server failed to start: %v", err.Error())
 	}
