@@ -2,3 +2,4 @@
 build/docker/.env
 build/docker/database.env
 config/main.yaml
+build/docker/logs/app.log
