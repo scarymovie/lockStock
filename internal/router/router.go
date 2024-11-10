@@ -1,26 +1,35 @@
+// router.go
 package router
 
 import (
+	"database/sql"
 	handlers "lockStock/internal/network/http"
 	"net/http"
 )
 
-func LoadRoutes(mainRouter *http.ServeMux) {
+// LoadRoutes загружает маршруты и передает подключение к базе данных в обработчики
+func LoadRoutes(mainRouter *http.ServeMux, db *sql.DB) {
+	// Под-маршрутизаторы для обработки пользователей и комнат
 	userRouter := http.NewServeMux()
-	roomRouter := http.NewServeMux()
+	//roomRouter := http.NewServeMux()
 
-	userHandler := &handlers.UserHandler{}
-	roomHandler := &handlers.RoomHandler{}
+	// Инициализация обработчиков с передачей `db`
+	userHandler := handlers.NewUserHandler(db)
+	//roomHandler := handlers.NewRoomHandler(db) // Создаём аналогично `UserHandler`
 
+	// Регистрация маршрутов пользователя
 	userRouter.HandleFunc("/create", userHandler.CreateUser)
 
-	roomRouter.HandleFunc("/list", roomHandler.GetAllActiveRooms)
-	roomRouter.HandleFunc("/find/token/{token}", roomHandler.FindRoomByToken)
-	roomRouter.HandleFunc("/connect/{roomId}/", roomHandler.ConnectToRoom)
-	roomRouter.HandleFunc("/gamers/{roomId}/list", roomHandler.GetAllActiveRooms)
+	// Регистрация маршрутов комнат
+	//roomRouter.HandleFunc("/list", roomHandler.GetAllActiveRooms)
+	//roomRouter.HandleFunc("/find/token/", roomHandler.FindRoomByToken) // Без параметра для примера
+	//roomRouter.HandleFunc("/connect/", roomHandler.ConnectToRoom)       // Обработка id в обработчике
+	//roomRouter.HandleFunc("/gamers/list", roomHandler.GetAllActiveRooms)
 
+	// Подключение под-маршрутизаторов
 	mainRouter.Handle("/user/", http.StripPrefix("/user", userRouter))
-	mainRouter.Handle("/room/", http.StripPrefix("/room", roomRouter))
+	//mainRouter.Handle("/room/", http.StripPrefix("/room", roomRouter))
 
+	// Основной API путь
 	mainRouter.Handle("/api/", http.StripPrefix("/api", mainRouter))
 }

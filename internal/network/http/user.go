@@ -1,30 +1,58 @@
 package http
 
 import (
-	"context"
-	user "lockStock/internal/domain/user"
-	"lockStock/internal/usecase/user/contract"
-	"log"
+	"database/sql"
+	"lockStock/internal/domain/user"
+	"lockStock/internal/usecase/user/service"
+	"lockStock/pkg/logger"
 	"net/http"
 )
 
 type UserHandler struct {
-	userService contract.UserCreator
+	DB          *sql.DB
+	UserService *service.UserService // Указываем полный путь к структуре UserService
 }
 
-func NewUserHandler(userService contract.UserCreator) *UserHandler {
-	return &UserHandler{userService: userService}
+// NewUserHandler конструктор для создания UserHandler и инициализации UserService
+func NewUserHandler(db *sql.DB) *UserHandler {
+	userService := service.NewUserService(db) // Имя переменной с маленькой буквы
+	return &UserHandler{DB: db, UserService: userService}
 }
 
+// CreateUser обрабатывает создание пользователя с использованием транзакции
 func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
-	newUser := user.NewUser("public-unique-uid")
+	logger.Logger.Println("Starting to create a new user transaction...")
 
-	if _, err := h.userService.CreateUser(context.Background(), newUser); err != nil {
+	// Запуск транзакции
+	ctx := r.Context()
+	tx, err := h.DB.BeginTx(ctx, nil)
+	if err != nil {
+		logger.Logger.Println("Transaction failed:", err)
+		http.Error(w, "Failed to start transaction", http.StatusInternalServerError)
+		return
+	}
+	defer func() {
+		if err != nil {
+			if rbErr := tx.Rollback(); rbErr != nil {
+				logger.Logger.Printf("Failed to rollback transaction: %v", rbErr)
+			}
+		} else {
+			if cmErr := tx.Commit(); cmErr != nil {
+				logger.Logger.Printf("Failed to commit transaction: %v", cmErr)
+				http.Error(w, "Failed to commit transaction", http.StatusInternalServerError)
+			}
+		}
+	}()
+
+	// Создание пользователя
+	newUser := user.NewUser("public-unique-uid")
+	if _, err = h.UserService.CreateUser(ctx, newUser); err != nil {
+		logger.Logger.Printf("Error creating user: %v", err)
 		http.Error(w, "Failed to create user", http.StatusInternalServerError)
 		return
 	}
 
+	// Возвращаем успешный ответ
 	w.WriteHeader(http.StatusCreated)
-	log.Println("User created successfully")
-	w.Write([]byte("user created!"))
+	w.Write([]byte("User created: " + newUser.UID))
 }

@@ -2,6 +2,7 @@ version: '3.8'
 
 services:
   dev-db:
+    container_name: dev-db
     image: postgres:15
     environment:
       POSTGRES_USER: ${DB_USER}
@@ -34,6 +35,8 @@ services:
       - ./.env
     networks:
       - lock_stock_network
+    volumes:
+      - ./logs:/app/logs
 
 volumes:
   lock_stock_db_data:

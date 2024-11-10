@@ -1,4 +1,4 @@
-package repository
+package service
 
 import (
 	"context"
@@ -6,16 +6,23 @@ import (
 	"lockStock/internal/domain/user"
 )
 
-type UserDB struct {
-	db *sql.DB
+// UserRepository работает с данными пользователей.
+type UserRepository struct {
+	tx *sql.Tx
 }
 
-func NewUserDB(db *sql.DB) *UserDB {
-	return &UserDB{db: db}
+// NewUserRepository создаёт новый репозиторий с транзакцией.
+func NewUserRepository(tx *sql.Tx) *UserRepository {
+	return &UserRepository{tx: tx}
 }
 
-func (u *UserDB) SaveUser(ctx context.Context, user *user.User) (string, error) {
+// SaveUser сохраняет пользователя в базе данных с использованием транзакции.
+func (r *UserRepository) SaveUser(ctx context.Context, newUser *user.User) (string, error) {
 	query := `INSERT INTO users (uid, created_at) VALUES ($1, $2) RETURNING id`
-	err := u.db.QueryRowContext(ctx, query, user.UID, user.CreatedAt).Scan(&user.UID)
-	return user.UID, err
+	var id string
+	err := r.tx.QueryRowContext(ctx, query, newUser.UID, newUser.CreatedAt).Scan(&id)
+	if err != nil {
+		return "", err
+	}
+	return id, nil
 }

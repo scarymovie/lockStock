@@ -1,20 +1,41 @@
+// main.go
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"lockStock/internal/middleware"
 	appRouter "lockStock/internal/router"
 	"log"
 	"net/http"
+
+	_ "github.com/lib/pq" // PostgreSQL драйвер
 )
 
-const configPath = "config/main"
-
 func main() {
+	//logger.Logger.Println("Starting application...")
+
+	// Подключение к базе данных
+	db, err := sql.Open("postgres", "host=dev-db port=5432 user=db_user password=db_password dbname=db_database sslmode=disable")
+	if err != nil {
+		//logger.Logger.Fatalf("Error opening database: %v", err)
+		println("Error opening database: %v", err.Error())
+		fmt.Printf("Error opening database: %v\n", err)
+	}
+	defer db.Close()
+
+	// Проверка подключения к базе данных
+	if err := db.Ping(); err != nil {
+		//logger.Logger.Fatalf("Database not reachable: %v", err)
+		println("Error pinging database: %v", err.Error())
+	}
+
+	// Создаем маршрутизатор и передаем в него подключение к базе данных
 	router := http.NewServeMux()
-	appRouter.LoadRoutes(router)
+	appRouter.LoadRoutes(router, db)
 	router.HandleFunc("/", handleOther)
 
+	// Создаем стек промежуточных обработчиков
 	stack := middleware.CreateStack(
 		middleware.Logging,
 	)
@@ -25,10 +46,12 @@ func main() {
 	}
 
 	fmt.Println("Server listening on port :8080")
-	server.ListenAndServe()
+	if err := server.ListenAndServe(); err != nil {
+		//logger.Logger.Fatalf("Server failed to start: %v", err)
+	}
 }
 
 func handleOther(w http.ResponseWriter, r *http.Request) {
-	log.Println("Received a non domain request")
+	log.Println("Received a non-domain request")
 	w.Write([]byte("Hello, stranger..."))
 }

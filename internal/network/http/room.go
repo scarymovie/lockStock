@@ -1,11 +1,14 @@
 package http
 
 import (
+	"database/sql"
 	"log"
 	"net/http"
 )
 
-type RoomHandler struct{}
+type RoomHandler struct {
+	DB *sql.DB
+}
 
 func (h *RoomHandler) GetAllActiveRooms(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusAccepted)
