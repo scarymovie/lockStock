@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"lockStock/internal/middleware"
 	appRouter "lockStock/internal/router"
+	"lockStock/pkg/logger"
 	"log"
 	"net/http"
 
@@ -13,21 +14,18 @@ import (
 )
 
 func main() {
-	//logger.Logger.Println("Starting application...")
+	logger.Logger.Println("Starting application...")
 
 	// Подключение к базе данных
 	db, err := sql.Open("postgres", "host=dev-db port=5432 user=db_user password=db_password dbname=db_database sslmode=disable")
 	if err != nil {
-		//logger.Logger.Fatalf("Error opening database: %v", err)
-		println("Error opening database: %v", err.Error())
-		fmt.Printf("Error opening database: %v\n", err)
+		logger.Logger.Fatalf("Error opening database: %v", err.Error())
 	}
 	defer db.Close()
 
 	// Проверка подключения к базе данных
 	if err := db.Ping(); err != nil {
-		//logger.Logger.Fatalf("Database not reachable: %v", err)
-		println("Error pinging database: %v", err.Error())
+		logger.Logger.Fatalf("Database not reachable: %v", err.Error())
 	}
 
 	// Создаем маршрутизатор и передаем в него подключение к базе данных
@@ -47,7 +45,7 @@ func main() {
 
 	fmt.Println("Server listening on port :8080")
 	if err := server.ListenAndServe(); err != nil {
-		//logger.Logger.Fatalf("Server failed to start: %v", err)
+		logger.Logger.Fatalf("Server failed to start: %v", err.Error())
 	}
 }
 
