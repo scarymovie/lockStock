@@ -2,6 +2,7 @@ package http
 
 import (
 	"database/sql"
+	"github.com/google/uuid"
 	"lockStock/internal/domain/user"
 	"lockStock/internal/usecase/user/service"
 	"lockStock/pkg/logger"
@@ -45,7 +46,7 @@ func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	}()
 
 	// Создание пользователя
-	newUser := user.NewUser("public-unique-uid")
+	newUser := user.NewUser("u" + uuid.New().String())
 	if _, err = h.UserService.CreateUser(ctx, newUser); err != nil {
 		logger.Logger.Printf("Error creating user: %v", err)
 		http.Error(w, "Failed to create user", http.StatusInternalServerError)
