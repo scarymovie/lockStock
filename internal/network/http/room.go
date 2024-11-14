@@ -2,37 +2,39 @@ package http
 
 import (
 	"database/sql"
+	"encoding/json"
+	"lockStock/internal/usecase/room/service"
 	"log"
 	"net/http"
 )
 
 type RoomHandler struct {
-	DB *sql.DB
+	DB          *sql.DB
+	RoomService *service.RoomService
+}
+
+func NewRoomHandler(db *sql.DB) *RoomHandler {
+	roomService := service.NewRoomService(db)
+	return &RoomHandler{RoomService: roomService}
 }
 
 func (h *RoomHandler) GetAllActiveRooms(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusAccepted)
-	log.Println("received request to get all active rooms")
-	w.Write([]byte("room tested"))
-}
+	ctx := r.Context()
 
-func (h *RoomHandler) FindRoomByToken(w http.ResponseWriter, r *http.Request) {
-	token := r.PathValue("token")
-	w.WriteHeader(http.StatusAccepted)
-	log.Println("received request to find room by token")
-	w.Write([]byte("you send token :" + token))
-}
+	// Получаем все комнаты через сервис
+	rooms, err := h.RoomService.GetAllRooms(ctx)
+	if err != nil {
+		http.Error(w, "Failed to fetch rooms", http.StatusInternalServerError)
+		log.Printf("Error fetching rooms: %v", err)
+		return
+	}
 
-func (h *RoomHandler) ConnectToRoom(w http.ResponseWriter, r *http.Request) {
-	roomId := r.PathValue("roomId")
-	w.WriteHeader(http.StatusAccepted)
-	log.Println("received request to connect to the room")
-	w.Write([]byte("you send roomId :" + roomId))
-}
+	// Возвращаем успешный ответ с данными (например, в JSON формате)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 
-func (h *RoomHandler) GetRoomGamers(w http.ResponseWriter, r *http.Request) {
-	roomId := r.PathValue("roomId")
-	w.WriteHeader(http.StatusAccepted)
-	log.Println("received request to get room gamers")
-	w.Write([]byte("you send roomId :" + roomId))
+	if err := json.NewEncoder(w).Encode(rooms); err != nil {
+		http.Error(w, "Failed to encode rooms", http.StatusInternalServerError)
+		log.Printf("Error encoding rooms: %v", err)
+	}
 }
