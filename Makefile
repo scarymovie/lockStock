@@ -1,7 +1,7 @@
 # Путь к .env файлу и шаблону
 ENV_FILE := build/docker/.env
-TEMPLATE_FILE := config/main.yaml.template
-CONFIG_FILE := config/main.yaml
+TEMPLATE_FILE := main.yaml.template
+CONFIG_FILE := main.yaml
 
 # Команда для создания main.yaml из шаблона и .env
 .PHONY: generate-config
@@ -12,9 +12,9 @@ generate-config:
 MIGRATE := $(shell go env GOPATH)/bin/migrate
 
 # Путь к файлу конфигурации
-CONFIG_FILE := config/main.yaml
+CONFIG_FILE := main.yaml
 
-# Параметры базы данных из config/main.yaml.template
+# Параметры базы данных из main.yaml.template
 DB_HOST := $(shell yq '.database.host' $(CONFIG_FILE))
 DB_PORT := $(shell yq '.database.port' $(CONFIG_FILE))
 DB_USER := $(shell yq '.database.user' $(CONFIG_FILE))

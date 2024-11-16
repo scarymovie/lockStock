@@ -3,8 +3,10 @@ package service
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"lockStock/internal/domain/room"
 	"lockStock/internal/domain/room/service"
+	"log"
 )
 
 type RoomService struct {
@@ -15,26 +17,39 @@ func NewRoomService(db *sql.DB) *RoomService {
 	return &RoomService{db: db}
 }
 
-// Получаем все комнаты через репозиторий
 func (s *RoomService) GetAllRooms(ctx context.Context) ([]room.Room, error) {
+	log.Println("[INFO] Starting transaction to fetch all rooms")
+
 	// Начинаем транзакцию
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
-		return nil, err
+		log.Printf("[ERROR] Failed to begin transaction: %v", err)
+		return nil, fmt.Errorf("failed to begin transaction: %w", err)
 	}
 
 	// Используем репозиторий для получения комнат
+	log.Println("[INFO] Initializing RoomRepository")
 	repo := service.NewRoomRepository(tx)
+
+	log.Println("[INFO] Fetching all rooms from repository")
 	rooms, err := repo.GetAllRooms(ctx)
 	if err != nil {
-		tx.Rollback() // Откатываем транзакцию в случае ошибки
-		return nil, err
+		log.Printf("[ERROR] Failed to fetch rooms: %v", err)
+		if rollbackErr := tx.Rollback(); rollbackErr != nil {
+			log.Printf("[ERROR] Failed to rollback transaction: %v", rollbackErr)
+		} else {
+			log.Println("[INFO] Transaction rolled back successfully")
+		}
+		return nil, fmt.Errorf("failed to fetch rooms: %w", err)
 	}
 
-	// Коммитим транзакцию, так как запрос успешен
+	// Коммитим транзакцию
+	log.Println("[INFO] Committing transaction")
 	if err := tx.Commit(); err != nil {
-		return nil, err
+		log.Printf("[ERROR] Failed to commit transaction: %v", err)
+		return nil, fmt.Errorf("failed to commit transaction: %w", err)
 	}
 
+	log.Printf("[INFO] Successfully fetched %d rooms", len(rooms))
 	return rooms, nil
 }
