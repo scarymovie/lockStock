@@ -15,16 +15,17 @@ func LoadRoutes(mainRouter *http.ServeMux, db *sql.DB) {
 
 	// Инициализация обработчиков с передачей `db`
 	userHandler := handlers.NewUserHandler(db)
-	roomHandler := handlers.NewRoomHandler(db)
+	getAllRoomsHandler := handlers.NewGetAllRoomsHandler(db)
+	getRoomByCodeHandler := handlers.NewGetRoomByCodeHandler(db)
 
 	// Регистрация маршрутов пользователя
 	userRouter.HandleFunc("/create", userHandler.CreateUser)
 
 	// Регистрация маршрутов комнат
-	roomRouter.HandleFunc("/list", roomHandler.GetAllActiveRooms)
-	//roomRouter.HandleFunc("/find/token/", roomHandler.FindRoomByToken) // Без параметра для примера
-	//roomRouter.HandleFunc("/connect/", roomHandler.ConnectToRoom)       // Обработка id в обработчике
-	//roomRouter.HandleFunc("/gamers/list", roomHandler.GetAllActiveRooms)
+	roomRouter.HandleFunc("/list", getAllRoomsHandler.GetAllActiveRooms)
+	roomRouter.HandleFunc("/find/token/{code}", getRoomByCodeHandler.GetRoomByCode) // Без параметра для примера
+	//roomRouter.HandleFunc("/connect/", getAllRoomsHandler.ConnectToRoom)       // Обработка id в обработчике
+	//roomRouter.HandleFunc("/gamers/list", getAllRoomsHandler.GetAllActiveRooms)
 
 	// Подключение под-маршрутизаторов
 	mainRouter.Handle("/user/", http.StripPrefix("/user", userRouter))

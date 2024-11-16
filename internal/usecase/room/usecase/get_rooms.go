@@ -1,23 +1,23 @@
-package service
+package usecase
 
 import (
 	"context"
 	"database/sql"
 	"fmt"
 	"lockStock/internal/domain/room"
-	"lockStock/internal/domain/room/service"
+	"lockStock/internal/domain/room/repository"
 	"log"
 )
 
-type RoomService struct {
+type GetAllRoomService struct {
 	db *sql.DB
 }
 
-func NewRoomService(db *sql.DB) *RoomService {
-	return &RoomService{db: db}
+func NewGetAllRoomService(db *sql.DB) *GetAllRoomService {
+	return &GetAllRoomService{db: db}
 }
 
-func (s *RoomService) GetAllRooms(ctx context.Context) ([]room.Room, error) {
+func (s *GetAllRoomService) GetAllRooms(ctx context.Context) ([]room.Room, error) {
 	log.Println("[INFO] Starting transaction to fetch all rooms")
 
 	// Начинаем транзакцию
@@ -29,7 +29,7 @@ func (s *RoomService) GetAllRooms(ctx context.Context) ([]room.Room, error) {
 
 	// Используем репозиторий для получения комнат
 	log.Println("[INFO] Initializing RoomRepository")
-	repo := service.NewRoomRepository(tx)
+	repo := repository.NewRoomRepository(tx)
 
 	log.Println("[INFO] Fetching all rooms from repository")
 	rooms, err := repo.GetAllRooms(ctx)

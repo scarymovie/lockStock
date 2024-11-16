@@ -1,4 +1,4 @@
-package service
+package repository
 
 import (
 	"context"
@@ -43,4 +43,28 @@ func (r *RoomRepository) GetAllRooms(ctx context.Context) ([]room.Room, error) {
 	}
 
 	return rooms, nil
+}
+
+func (r *RoomRepository) GetRoomByCode(ctx context.Context, code string) (*room.Room, error) {
+	const query = `
+		SELECT uid, name, code, created_at
+		FROM rooms
+		WHERE code = $1
+	`
+
+	var currentRoom room.Room
+	err := r.tx.QueryRowContext(ctx, query, code).Scan(
+		&currentRoom.UID,
+		&currentRoom.Name,
+		&currentRoom.Code,
+		&currentRoom.CreatedAt,
+	)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, fmt.Errorf("room with code %q not found: %w", code, err)
+		}
+		return nil, fmt.Errorf("failed to fetch room by code: %w", err)
+	}
+
+	return &currentRoom, nil
 }

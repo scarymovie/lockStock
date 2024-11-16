@@ -4,19 +4,19 @@ import (
 	"database/sql"
 	"github.com/google/uuid"
 	"lockStock/internal/domain/user"
-	"lockStock/internal/usecase/user/service"
+	"lockStock/internal/usecase/user/usecase"
 	"lockStock/pkg/logger"
 	"net/http"
 )
 
 type UserHandler struct {
 	DB          *sql.DB
-	UserService *service.UserService // Указываем полный путь к структуре UserService
+	UserService *usecase.UserService // Указываем полный путь к структуре UserService
 }
 
 // NewUserHandler конструктор для создания UserHandler и инициализации UserService
 func NewUserHandler(db *sql.DB) *UserHandler {
-	userService := service.NewUserService(db) // Имя переменной с маленькой буквы
+	userService := usecase.NewUserService(db) // Имя переменной с маленькой буквы
 	return &UserHandler{DB: db, UserService: userService}
 }
 

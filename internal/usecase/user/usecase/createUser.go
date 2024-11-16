@@ -1,10 +1,10 @@
-package service
+package usecase
 
 import (
 	"context"
 	"database/sql"
 	"lockStock/internal/domain/user"
-	"lockStock/internal/domain/user/service"
+	"lockStock/internal/domain/user/repository"
 )
 
 // UserService предоставляет методы для работы с пользователями.
@@ -26,7 +26,7 @@ func (s *UserService) CreateUser(ctx context.Context, newUser *user.User) (strin
 	}
 
 	// Выполняем сохранение пользователя
-	repo := service.NewUserRepository(tx)
+	repo := repository.NewUserRepository(tx)
 	id, err := repo.SaveUser(ctx, newUser)
 	if err != nil {
 		tx.Rollback() // Откатываем транзакцию в случае ошибки

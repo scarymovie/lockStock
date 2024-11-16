@@ -3,26 +3,26 @@ package http
 import (
 	"database/sql"
 	"encoding/json"
-	"lockStock/internal/usecase/room/service"
+	"lockStock/internal/usecase/room/usecase"
 	"log"
 	"net/http"
 )
 
-type RoomHandler struct {
-	DB          *sql.DB
-	RoomService *service.RoomService
+type GetRoomByCodeHandler struct {
+	DB                   *sql.DB
+	GetRoomByCodeService *usecase.GetRoomByCodeService
 }
 
-func NewRoomHandler(db *sql.DB) *RoomHandler {
-	roomService := service.NewRoomService(db)
-	return &RoomHandler{RoomService: roomService}
+func NewGetRoomByCodeHandler(db *sql.DB) *GetRoomByCodeHandler {
+	roomService := usecase.NewGetRoomByCodeService(db)
+	return &GetRoomByCodeHandler{GetRoomByCodeService: roomService}
 }
 
-func (h *RoomHandler) GetAllActiveRooms(w http.ResponseWriter, r *http.Request) {
+func (h *GetRoomByCodeHandler) GetRoomByCode(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-
+	code := r.PathValue("code")
 	// Получаем все комнаты через сервис
-	rooms, err := h.RoomService.GetAllRooms(ctx)
+	rooms, err := h.GetRoomByCodeService.GetRoomByCode(ctx, code)
 	if err != nil {
 		http.Error(w, "Failed to fetch rooms", http.StatusInternalServerError)
 		log.Printf("Error fetching rooms: %v", err)
